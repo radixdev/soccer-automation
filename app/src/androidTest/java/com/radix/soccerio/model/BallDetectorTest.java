@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 public class BallDetectorTest {
   @Test
   public void testGeneralDetection() throws IOException {
-    Bitmap ball = AssetsReader.readBitmapFromAssets("gameshots/ball3.png");
+    Bitmap ball = AssetsReader.readBitmapFromAssets("gameshots/ball5.png");
     BallDetector ballDetector = new BallDetector();
 
     Rect bounds = ballDetector.getBallBounds(ball);
