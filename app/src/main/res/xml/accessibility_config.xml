@@ -1,0 +1,7 @@
+<accessibility-service
+  android:accessibilityEventTypes=""
+  android:packageNames=""
+  android:notificationTimeout="100"
+  android:canRetrieveWindowContent="false"
+  android:canPerformGestures="true"
+  xmlns:android="http://schemas.android.com/apk/res/android"/>
