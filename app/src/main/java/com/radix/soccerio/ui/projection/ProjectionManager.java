@@ -138,6 +138,7 @@ public class ProjectionManager {
           // create bitmap
           mLastCapturedBitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
           mLastCapturedBitmap.copyPixelsFromBuffer(buffer);
+          image.close();
         }
       } catch (Exception e) {
         Jog.e(TAG, "Failed to capture new image bitmap", e);
