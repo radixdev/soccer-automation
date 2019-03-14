@@ -21,7 +21,7 @@ import android.view.OrientationEventListener;
 
 import androidx.annotation.Nullable;
 
-import com.radix.soccerio.controller.TapAccessibilityService;
+import com.radix.soccerio.controller.TapAccessibilityService2;
 import com.radix.soccerio.util.Jog;
 
 import java.nio.ByteBuffer;
@@ -99,6 +99,7 @@ public class ProjectionManager {
   }
 
   public void stopProjection() {
+    Jog.i(TAG, "Stop projection called");
     mHandler.post(() -> {
       if (sMediaProjection != null) {
         sMediaProjection.stop();
@@ -148,7 +149,7 @@ public class ProjectionManager {
             image.close();
 
             mLastScreenshotTimeMillis = SystemClock.uptimeMillis();
-            TapAccessibilityService.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
+            TapAccessibilityService2.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
           }
         }
       } catch (Exception e) {

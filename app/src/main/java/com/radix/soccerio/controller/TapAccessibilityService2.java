@@ -12,10 +12,10 @@ import com.radix.soccerio.model.detection.BallDetector;
 import com.radix.soccerio.model.detection.IBallDetector;
 import com.radix.soccerio.util.Jog;
 
-public class TapAccessibilityService extends AccessibilityService {
-  private static final String TAG = TapAccessibilityService.class.getName();
+public class TapAccessibilityService2 extends AccessibilityService {
+  private static final String TAG = TapAccessibilityService2.class.getName();
   private static boolean sIsRunning = false;
-  private static TapAccessibilityService sInstance = null;
+  private static TapAccessibilityService2 sInstance = null;
   private static final int TAP_DURATION_MILLIS = 10;
 
   private IBallDetector mBallDetector = new BallDetector();
@@ -44,17 +44,17 @@ public class TapAccessibilityService extends AccessibilityService {
 
   public void sendTap(float x, float y) {
     boolean result = dispatchGesture(createClick(x, y), null, null);
-    Jog.d(TAG, "Gesture dispatched? " + result);
+    Jog.d(TAG, "Tap gesture to " + x + " " + y + " dispatched? " + result);
   }
 
   public static boolean isRunning() {
     return sIsRunning;
   }
 
-  public static TapAccessibilityService getInstance() {
+  public static TapAccessibilityService2 getInstance() {
     if (sInstance == null) {
-      Jog.w(TAG, "TapAccessibilityService is not connected yet.");
-      throw new RuntimeException("TapAccessibilityService is not connected yet.");
+      Jog.w(TAG, "TapAccessibilityService2 is not connected yet.");
+      throw new RuntimeException("TapAccessibilityService2 is not connected yet.");
     }
     return sInstance;
   }

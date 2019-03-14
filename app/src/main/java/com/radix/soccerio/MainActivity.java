@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.radix.soccerio.controller.TapAccessibilityService;
+import com.radix.soccerio.controller.TapAccessibilityService2;
 import com.radix.soccerio.ui.projection.ProjectionManager;
 import com.radix.soccerio.util.Jog;
 
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     mProjectionManager = new ProjectionManager(activity);
 
     findViewById(R.id.bEnable).setOnClickListener(v -> {
-      if (!TapAccessibilityService.isRunning()) {
+      if (!TapAccessibilityService2.isRunning()) {
         Toast.makeText(getApplicationContext(), R.string.service_is_not_running_foh, Toast.LENGTH_LONG).show();
       } else {
         mProjectionManager.startProjection(activity);
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    if (!TapAccessibilityService.isRunning()) {
+    if (!TapAccessibilityService2.isRunning()) {
       Jog.d(TAG, "Service is not running!");
       gotoAccessibilitySettings();
     } else {
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
       // Runnable tapLoopRunnable = () -> {
       //   // Bitmap lastCapturedBitmap = ProjectionManager.getLastCapturedBitmap();
       //   // Jog.d(TAG, "Got bitmap");
-      //   // TapAccessibilityService.getInstance().sendTap(689, 2833);
+      //   // TapAccessibilityService2.getInstance().sendTap(689, 2833);
       // };
       // handler.postDelayed(tapLoopRunnable, 10000L);
     }
