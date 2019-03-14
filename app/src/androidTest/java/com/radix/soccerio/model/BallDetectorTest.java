@@ -3,14 +3,15 @@ package com.radix.soccerio.model;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 
-import androidx.test.runner.AndroidJUnit4;
-
 import com.radix.soccerio.AssetsReader;
+import com.radix.soccerio.model.detection.BallDetector;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+
+import androidx.test.runner.AndroidJUnit4;
 
 import static org.junit.Assert.assertTrue;
 

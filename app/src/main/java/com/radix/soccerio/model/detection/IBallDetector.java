@@ -1,4 +1,4 @@
-package com.radix.soccerio.model;
+package com.radix.soccerio.model.detection;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
