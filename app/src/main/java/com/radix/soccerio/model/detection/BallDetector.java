@@ -12,7 +12,7 @@ public class BallDetector implements IBallDetector {
   private static final int MAX_STRIDE = 100;
   private static final int Y_STRIDE = 50;
   private static final int MIN_STRIDE = 30;
-  public static final float MAGNITUDE_THRESHOLD = 0.0001f;
+  private static final float MAGNITUDE_THRESHOLD = 0.0001f;
 
   @Override
   public Rect getBallBounds(Bitmap sourceBitmap) {
@@ -22,15 +22,26 @@ public class BallDetector implements IBallDetector {
 
     Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
     List<Integer> borderPoints = getBorderPoints(copyBitmap, sourceWidth, sourceHeight);
+    getContiguousRects(copyBitmap, borderPoints);
     return null;
   }
 
   /**
-   * All of the {@link Rect}'s that constitute regions
+   * All of the {@link Rect}'s that constitute regions.
+   *
    * @param borderPoints
    */
-  private static void getContiguousRects(List<Integer> borderPoints) {
+  private static void getContiguousRects(Bitmap sourceBitmap, List<Integer> borderPoints) {
+    for (int i = 2; i < borderPoints.size(); i+=2) {
+      int x = borderPoints.get(i);
+      int y = borderPoints.get(i + 1);
 
+      // Get the points that came before
+      for (int j = 0; j < i; j+=2) {
+        int prevX = borderPoints.get(j);
+        int prevY = borderPoints.get(j + 1);
+      }
+    }
   }
 
   private static List<Integer> getBorderPoints(Bitmap sourceBitmap, int sourceWidth, int sourceHeight) {
@@ -39,7 +50,7 @@ public class BallDetector implements IBallDetector {
     int stride = MAX_STRIDE;
     for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += stride) {
       for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
-        float xMagnitude = getLuminance(sourceBitmap, x + MIN_STRIDE, y) - getLuminance(sourceBitmap, x - MIN_STRIDE, y);
+        float xMagnitude = DetectionUtil.getLuminance(sourceBitmap, x + MIN_STRIDE, y) - DetectionUtil.getLuminance(sourceBitmap, x - MIN_STRIDE, y);
         float yMagnitude = 0;//getLuminance(sourceBitmap, x, y + MIN_STRIDE) - getLuminance(sourceBitmap, x, y - MIN_STRIDE);
         double normalMagnitude = Math.sqrt(xMagnitude * xMagnitude + yMagnitude * yMagnitude);
 
@@ -63,8 +74,4 @@ public class BallDetector implements IBallDetector {
     }
   }
 
-  private static float getLuminance(Bitmap bitmap, int x, int y) {
-    int pixelColor = bitmap.getPixel(x, y);
-    return Color.luminance(pixelColor);
-  }
 }
