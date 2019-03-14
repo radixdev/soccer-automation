@@ -3,6 +3,7 @@ package com.radix.soccerio.model.detection;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.os.SystemClock;
 
 import androidx.annotation.ColorInt;
 
@@ -16,13 +17,16 @@ import java.util.Set;
 
 public class BallDetector implements IBallDetector {
   private static final String TAG = BallDetector.class.getName();
-  private static final int MAX_STRIDE = 100;
-  private static final int Y_STRIDE = 50;
-  private static final int MIN_STRIDE = 30;
-  private static final float MAGNITUDE_THRESHOLD = 0.0001f;
+  private static final int MAX_STRIDE = 50;
+  private static final int Y_STRIDE = 25;
+  private static final int MIN_STRIDE = 20;
+  private static final float MAGNITUDE_THRESHOLD = 0.401f;
   private static List<Integer> mBorderPoints = new ArrayList<>();
   private static List<Region> mGeneratedRegions = new ArrayList<>();
   private static Set<Integer> mConsumedIndices = new HashSet<>();
+
+  private long mLastDetectTime = 1;
+  private Region mLastRegion = null;
 
   @Override
   public Rect getBallBounds(Bitmap sourceBitmap) {
@@ -33,23 +37,53 @@ public class BallDetector implements IBallDetector {
     List<Integer> borderPoints = getBorderPoints(sourceBitmap, sourceWidth, sourceHeight);
     List<Region> contiguousRegions = getContiguousRegions(borderPoints);
 
+    // Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
+    // for (Region contiguousRegion : contiguousRegions) {
+    //   drawRegion(copyBitmap, contiguousRegion);
+    // }
+
     // Find the best region and return it
     Region bestRegion = null;
     int bestPointCount = -1;
     for (Region region : contiguousRegions) {
+      Rect bounds = region.getRegionBounds();
       if (bestPointCount < region.getContainedPoints()) {
         bestPointCount = region.getContainedPoints();
         bestRegion = region;
       }
     }
 
-    if (bestRegion != null && bestPointCount > 12) {
+    if (bestRegion != null) {
       ticket.report();
-      Jog.v(TAG, "Found best region with num points: " + bestPointCount + " and region: " + bestRegion.getRegionBounds());
-      return bestRegion.getRegionBounds();
+      Jog.v(TAG, "Found best region with num points: " + bestPointCount + " and region: "
+          + bestRegion.getRegionBounds() + " with dims: " + bestRegion.getRegionBounds().width() + " " + bestRegion.getRegionBounds().height());
+
+      double xVel = 0;
+      double yVel = 0;
+      if (mLastRegion != null) {
+        long delta = SystemClock.uptimeMillis() - mLastDetectTime;
+        printLastRegionStats(bestRegion, delta);
+        xVel = ((double) bestRegion.getRegionBounds().centerX() - (double) mLastRegion.getRegionBounds().centerX()) / delta;
+        yVel = ((double) bestRegion.getRegionBounds().centerY() - (double) mLastRegion.getRegionBounds().centerY()) / delta;
+      }
+
+      mLastRegion = bestRegion;
+      mLastDetectTime = SystemClock.uptimeMillis();
+
+      // Shift by the delta
+      Rect regionBounds = bestRegion.getRegionBounds();
+      float scalar = 2;
+      regionBounds.offset((int) (xVel * scalar), (int) (yVel * scalar));
+
+      return regionBounds;
     } else {
       return null;
     }
+  }
+
+  private void printLastRegionStats(Region newRegion, float delta) {
+    double yVel = (newRegion.getRegionBounds().centerY() - mLastRegion.getRegionBounds().centerY()) / delta;
+    Jog.d(TAG, "yvel: " + yVel);
   }
 
   /**

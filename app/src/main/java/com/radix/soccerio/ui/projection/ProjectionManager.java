@@ -139,7 +139,9 @@ public class ProjectionManager {
             int rowPadding = rowStride - pixelStride * mWidth;
 
             // create bitmap
-            mLastCapturedBitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
+            if (mLastCapturedBitmap == null) {
+              mLastCapturedBitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
+            }
             mLastCapturedBitmap.copyPixelsFromBuffer(buffer);
             image.close();
 

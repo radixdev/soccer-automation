@@ -79,7 +79,7 @@ public class TapAccessibilityService3 extends AccessibilityService {
   public void onScreenBitmapAvailable(Bitmap bitmap) {
     Rect ballBounds = mBallDetector.getBallBounds(bitmap);
 
-    if (ballBounds == null) {
+    if (ballBounds == null || ballBounds.centerY() < 1200) {
       return;
     }
     // Choose a point in the middle, near the bottom
@@ -101,6 +101,9 @@ public class TapAccessibilityService3 extends AccessibilityService {
    * @param y (x, y) in screen coordinates
    */
   private static GestureDescription createClick(float x, float y) {
+    if (x < 0 || y < 0) {
+      return null;
+    }
     Path clickPath = new Path();
     clickPath.moveTo(x, y);
     GestureDescription.StrokeDescription clickStroke =
