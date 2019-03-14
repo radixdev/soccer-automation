@@ -13,7 +13,7 @@
     android:theme="@style/AppTheme"
     tools:ignore="GoogleAppIndexingWarning">
     <service
-      android:name=".controller.TapAccessibilityService2"
+      android:name=".controller.TapAccessibilityService3"
       android:enabled="true"
       android:exported="true"
       android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">

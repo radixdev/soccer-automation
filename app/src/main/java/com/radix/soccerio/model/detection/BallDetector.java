@@ -6,6 +6,8 @@ import android.graphics.Rect;
 
 import androidx.annotation.ColorInt;
 
+import com.radix.soccerio.util.Jog;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +42,8 @@ public class BallDetector implements IBallDetector {
       }
     }
 
-    if (bestRegion != null) {
+    if (bestRegion != null && bestPointCount > 15) {
+      Jog.v(TAG, "Found best region with num points: " + bestPointCount);
       return bestRegion.getRegionBounds();
     } else {
       return null;

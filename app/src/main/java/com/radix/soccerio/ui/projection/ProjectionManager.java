@@ -19,12 +19,11 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.OrientationEventListener;
 
-import androidx.annotation.Nullable;
-
-import com.radix.soccerio.controller.TapAccessibilityService2;
+import com.radix.soccerio.controller.TapAccessibilityService3;
 import com.radix.soccerio.util.Jog;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Delegation class for all the bitmap stuffs
@@ -52,7 +51,7 @@ public class ProjectionManager {
   private int mHeight;
   private int mRotation;
   private OrientationChangeCallback mOrientationChangeCallback;
-  private long mLastScreenshotTimeMillis = 0L;
+  private long mLastScreenshotTimeMillis = SystemClock.uptimeMillis() + TimeUnit.SECONDS.toMillis(10);
 
   public ProjectionManager(Context context) {
     // call for the projection manager
@@ -96,6 +95,7 @@ public class ProjectionManager {
 
   public void startProjection(Activity activity) {
     activity.startActivityForResult(mProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+    mLastScreenshotTimeMillis = SystemClock.uptimeMillis() + TimeUnit.SECONDS.toMillis(5);
   }
 
   public void stopProjection() {
@@ -107,10 +107,10 @@ public class ProjectionManager {
     });
   }
 
-  @Nullable
-  public static Bitmap getLastCapturedBitmap() {
-    return mLastCapturedBitmap;
-  }
+  // @Nullable
+  // public static Bitmap getLastCapturedBitmap() {
+  //   return mLastCapturedBitmap;
+  // }
 
   private void createVirtualDisplay() {
     // get width and height
@@ -149,7 +149,7 @@ public class ProjectionManager {
             image.close();
 
             mLastScreenshotTimeMillis = SystemClock.uptimeMillis();
-            TapAccessibilityService2.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
+            TapAccessibilityService3.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
           }
         }
       } catch (Exception e) {
