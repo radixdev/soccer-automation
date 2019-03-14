@@ -13,13 +13,13 @@ import android.view.accessibility.AccessibilityEvent;
 
 import com.radix.soccerio.model.detection.BallDetector;
 import com.radix.soccerio.model.detection.IBallDetector;
+import com.radix.soccerio.util.Constants;
 import com.radix.soccerio.util.Jog;
 
 public class TapAccessibilityService3 extends AccessibilityService {
   private static final String TAG = TapAccessibilityService3.class.getName();
   private static boolean sIsRunning = false;
   private static TapAccessibilityService3 sInstance = null;
-  private static final int TAP_DURATION_MILLIS = 10;
 
   private IBallDetector mBallDetector = new BallDetector();
 
@@ -79,13 +79,12 @@ public class TapAccessibilityService3 extends AccessibilityService {
   public void onScreenBitmapAvailable(Bitmap bitmap) {
     Rect ballBounds = mBallDetector.getBallBounds(bitmap);
 
-    if (ballBounds == null || ballBounds.bottom < bitmap.getHeight() * 0.2) {
-      Jog.v(TAG, "Skipping bounds at: " + ballBounds);
+    if (ballBounds == null) {
       return;
     }
-    // Choose a point in the middle, about 75% down
+    // Choose a point in the middle, near the bottom
     float tapX = ballBounds.exactCenterX();
-    float tapY = ballBounds.top + (ballBounds.height()) * 0.15f;
+    float tapY = ballBounds.top + (ballBounds.height()) * 0.95f;
     sendTap(tapX, tapY);
   }
 
@@ -105,7 +104,7 @@ public class TapAccessibilityService3 extends AccessibilityService {
     Path clickPath = new Path();
     clickPath.moveTo(x, y);
     GestureDescription.StrokeDescription clickStroke =
-        new GestureDescription.StrokeDescription(clickPath, 0, TAP_DURATION_MILLIS);
+        new GestureDescription.StrokeDescription(clickPath, 0, Constants.TAP_DURATION_MILLIS);
     GestureDescription.Builder clickBuilder = new GestureDescription.Builder();
     clickBuilder.addStroke(clickStroke);
     return clickBuilder.build();

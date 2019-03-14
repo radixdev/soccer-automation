@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import androidx.annotation.ColorInt;
 
 import com.radix.soccerio.util.Jog;
+import com.radix.soccerio.util.Stopwatch;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,18 +20,18 @@ public class BallDetector implements IBallDetector {
   private static final int Y_STRIDE = 50;
   private static final int MIN_STRIDE = 30;
   private static final float MAGNITUDE_THRESHOLD = 0.0001f;
+  private static List<Integer> mBorderPoints = new ArrayList<>();
+  private static List<Region> mGeneratedRegions = new ArrayList<>();
+  private static Set<Integer> mConsumedIndices = new HashSet<>();
 
   @Override
   public Rect getBallBounds(Bitmap sourceBitmap) {
+    Stopwatch.Ticket ticket = Stopwatch.start("get ball bounds");
     final int sourceWidth = sourceBitmap.getWidth();
     final int sourceHeight = sourceBitmap.getHeight();
 
-    // Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
     List<Integer> borderPoints = getBorderPoints(sourceBitmap, sourceWidth, sourceHeight);
     List<Region> contiguousRegions = getContiguousRegions(borderPoints);
-    // for (Region region : contiguousRegions) {
-    //   drawRegion(copyBitmap, region);
-    // }
 
     // Find the best region and return it
     Region bestRegion = null;
@@ -42,8 +43,9 @@ public class BallDetector implements IBallDetector {
       }
     }
 
-    if (bestRegion != null && bestPointCount > 15) {
-      Jog.v(TAG, "Found best region with num points: " + bestPointCount);
+    if (bestRegion != null && bestPointCount > 12) {
+      ticket.report();
+      Jog.v(TAG, "Found best region with num points: " + bestPointCount + " and region: " + bestRegion.getRegionBounds());
       return bestRegion.getRegionBounds();
     } else {
       return null;
@@ -56,9 +58,9 @@ public class BallDetector implements IBallDetector {
    * @param borderPoints
    */
   private static List<Region> getContiguousRegions(List<Integer> borderPoints) {
-    List<Region> generatedRegions = new ArrayList<>();
+    mGeneratedRegions.clear();
     // x indices that currently reside in a Region somewhere
-    Set<Integer> consumedIndices = new HashSet<>();
+    mConsumedIndices.clear();
 
     for (int i = 2; i < borderPoints.size(); i+=2) {
       int currX = borderPoints.get(i);
@@ -66,10 +68,10 @@ public class BallDetector implements IBallDetector {
 
       // If the current point is close to an existing region, consume it
       boolean foundRegion = false;
-      for (Region region : generatedRegions) {
+      for (Region region : mGeneratedRegions) {
         if (region.shouldConsumePoint(currX, currY)) {
           // bingo
-          consumedIndices.add(i);
+          mConsumedIndices.add(i);
           region.consumePoint(currX, currY);
           foundRegion = true;
           break;
@@ -82,7 +84,7 @@ public class BallDetector implements IBallDetector {
 
       // Get the points that came before and try to generate a region
       for (int j = 0; j < i; j+=2) {
-        if (consumedIndices.contains(j)) {
+        if (mConsumedIndices.contains(j)) {
           continue;
         }
 
@@ -93,8 +95,8 @@ public class BallDetector implements IBallDetector {
           Region region = new Region(currX, currY);
           region.consumePoint(prevX, prevY);
           // This point is now done
-          consumedIndices.add(j);
-          generatedRegions.add(region);
+          mConsumedIndices.add(j);
+          mGeneratedRegions.add(region);
 
           // Since all previous points are now matched to a Region, we can stop traversing them
           break;
@@ -102,27 +104,23 @@ public class BallDetector implements IBallDetector {
       }
     }
 
-    return generatedRegions;
+    return mGeneratedRegions;
   }
 
   private static List<Integer> getBorderPoints(Bitmap sourceBitmap, int sourceWidth, int sourceHeight) {
-    List<Integer> borderPoints = new ArrayList<>();
+    mBorderPoints.clear();
 
-    int stride = MAX_STRIDE;
-    for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += stride) {
+    for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += MAX_STRIDE) {
       for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
         float xMagnitude = DetectionUtil.getLuminance(sourceBitmap, x + MIN_STRIDE, y) - DetectionUtil.getLuminance(sourceBitmap, x - MIN_STRIDE, y);
-        float yMagnitude = 0;//getLuminance(sourceBitmap, x, y + MIN_STRIDE) - getLuminance(sourceBitmap, x, y - MIN_STRIDE);
-        double normalMagnitude = Math.sqrt(xMagnitude * xMagnitude + yMagnitude * yMagnitude);
-
-        if (normalMagnitude > MAGNITUDE_THRESHOLD) {
-          borderPoints.add(x);
-          borderPoints.add(y);
+        if (xMagnitude > MAGNITUDE_THRESHOLD) {
+          mBorderPoints.add(x);
+          mBorderPoints.add(y);
         }
       }
     }
 
-    return borderPoints;
+    return mBorderPoints;
   }
 
   private static void drawBigBox(Bitmap bitmap, int startX, int startY, int radius, @ColorInt int color) {

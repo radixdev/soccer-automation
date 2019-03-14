@@ -20,6 +20,7 @@ import android.view.Display;
 import android.view.OrientationEventListener;
 
 import com.radix.soccerio.controller.TapAccessibilityService3;
+import com.radix.soccerio.util.Constants;
 import com.radix.soccerio.util.Jog;
 
 import java.nio.ByteBuffer;
@@ -35,7 +36,6 @@ public class ProjectionManager {
   private static final int REQUEST_CODE = 100;
   private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
   private static final int IMAGE_READER_MAX_IMAGES = 1;
-  private static final long MIN_TAP_INTERVAL_MILLIS = 500L;
   private final MediaProjectionManager mProjectionManager;
   private static MediaProjection sMediaProjection;
   /**
@@ -107,11 +107,6 @@ public class ProjectionManager {
     });
   }
 
-  // @Nullable
-  // public static Bitmap getLastCapturedBitmap() {
-  //   return mLastCapturedBitmap;
-  // }
-
   private void createVirtualDisplay() {
     // get width and height
     Point size = new Point();
@@ -133,7 +128,7 @@ public class ProjectionManager {
     public void onImageAvailable(ImageReader reader) {
       try (Image image = reader.acquireNextImage()) {
         if (image != null) {
-          if (SystemClock.uptimeMillis() - mLastScreenshotTimeMillis < MIN_TAP_INTERVAL_MILLIS) {
+          if (SystemClock.uptimeMillis() - mLastScreenshotTimeMillis < Constants.MIN_BITMAP_RETRIEVAL_INTERVAL_MILLIS) {
             // Skip until the next image
             image.close();
           } else {
