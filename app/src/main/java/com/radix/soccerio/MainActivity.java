@@ -2,9 +2,7 @@ package com.radix.soccerio;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -75,13 +73,13 @@ public class MainActivity extends AppCompatActivity {
       Jog.d(TAG, "Service is not running!");
       gotoAccessibilitySettings();
     } else {
-      Handler handler = new Handler();
-      Runnable tapLoopRunnable = () -> {
-        Bitmap lastCapturedBitmap = ProjectionManager.getLastCapturedBitmap();
-        Jog.d(TAG, "Got bitmap");
-        // TapAccessibilityService.getInstance().sendTap(689, 2833);
-      };
-      handler.postDelayed(tapLoopRunnable, 10000L);
+      // Handler handler = new Handler();
+      // Runnable tapLoopRunnable = () -> {
+      //   // Bitmap lastCapturedBitmap = ProjectionManager.getLastCapturedBitmap();
+      //   // Jog.d(TAG, "Got bitmap");
+      //   // TapAccessibilityService.getInstance().sendTap(689, 2833);
+      // };
+      // handler.postDelayed(tapLoopRunnable, 10000L);
     }
   }
 

@@ -14,12 +14,14 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.OrientationEventListener;
 
 import androidx.annotation.Nullable;
 
+import com.radix.soccerio.controller.TapAccessibilityService;
 import com.radix.soccerio.util.Jog;
 
 import java.nio.ByteBuffer;
@@ -34,13 +36,13 @@ public class ProjectionManager {
   private static final int REQUEST_CODE = 100;
   private static final int VIRTUAL_DISPLAY_FLAGS = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
   private static final int IMAGE_READER_MAX_IMAGES = 1;
+  private static final long MIN_TAP_INTERVAL_MILLIS = 500L;
+  private final MediaProjectionManager mProjectionManager;
   private static MediaProjection sMediaProjection;
   /**
    * The last captured bitmap, or null.
    */
   private static Bitmap mLastCapturedBitmap = null;
-
-  private final MediaProjectionManager mProjectionManager;
   private ImageReader mImageReader;
   private Handler mHandler;
   private Display mDisplay;
@@ -50,6 +52,7 @@ public class ProjectionManager {
   private int mHeight;
   private int mRotation;
   private OrientationChangeCallback mOrientationChangeCallback;
+  private long mLastScreenshotTimeMillis = 0L;
 
   public ProjectionManager(Context context) {
     // call for the projection manager
@@ -129,16 +132,24 @@ public class ProjectionManager {
     public void onImageAvailable(ImageReader reader) {
       try (Image image = reader.acquireNextImage()) {
         if (image != null) {
-          Image.Plane[] planes = image.getPlanes();
-          ByteBuffer buffer = planes[0].getBuffer();
-          int pixelStride = planes[0].getPixelStride();
-          int rowStride = planes[0].getRowStride();
-          int rowPadding = rowStride - pixelStride * mWidth;
+          if (SystemClock.uptimeMillis() - mLastScreenshotTimeMillis < MIN_TAP_INTERVAL_MILLIS) {
+            // Skip until the next image
+            image.close();
+          } else {
+            Image.Plane[] planes = image.getPlanes();
+            ByteBuffer buffer = planes[0].getBuffer();
+            int pixelStride = planes[0].getPixelStride();
+            int rowStride = planes[0].getRowStride();
+            int rowPadding = rowStride - pixelStride * mWidth;
 
-          // create bitmap
-          mLastCapturedBitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
-          mLastCapturedBitmap.copyPixelsFromBuffer(buffer);
-          image.close();
+            // create bitmap
+            mLastCapturedBitmap = Bitmap.createBitmap(mWidth + rowPadding / pixelStride, mHeight, Bitmap.Config.ARGB_8888);
+            mLastCapturedBitmap.copyPixelsFromBuffer(buffer);
+            image.close();
+
+            mLastScreenshotTimeMillis = SystemClock.uptimeMillis();
+            TapAccessibilityService.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
+          }
         }
       } catch (Exception e) {
         Jog.e(TAG, "Failed to capture new image bitmap", e);

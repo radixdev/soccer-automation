@@ -3,9 +3,13 @@ package com.radix.soccerio.controller;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.view.accessibility.AccessibilityEvent;
 
+import com.radix.soccerio.model.detection.BallDetector;
+import com.radix.soccerio.model.detection.IBallDetector;
 import com.radix.soccerio.util.Jog;
 
 public class TapAccessibilityService extends AccessibilityService {
@@ -13,6 +17,8 @@ public class TapAccessibilityService extends AccessibilityService {
   private static boolean sIsRunning = false;
   private static TapAccessibilityService sInstance = null;
   private static final int TAP_DURATION_MILLIS = 10;
+
+  private IBallDetector mBallDetector = new BallDetector();
 
   @Override
   public void onAccessibilityEvent(AccessibilityEvent event) {}
@@ -51,6 +57,15 @@ public class TapAccessibilityService extends AccessibilityService {
       throw new RuntimeException("TapAccessibilityService is not connected yet.");
     }
     return sInstance;
+  }
+
+  public void onScreenBitmapAvailable(Bitmap bitmap) {
+    Rect ballBounds = mBallDetector.getBallBounds(bitmap);
+
+    // Choose a point in the middle, about 75% down
+    float tapX = ballBounds.exactCenterX();
+    float tapY = ballBounds.top + (ballBounds.height()) * 0.75f;
+    sendTap(tapX, tapY);
   }
 
   /**
