@@ -16,8 +16,14 @@ public class DetectionUtil {
    * @param y2
    * @return
    */
-  public static float getDistance(int x1, int y1, int x2, int y2) {
+  public static float getManhattanDistance(int x1, int y1, int x2, int y2) {
     return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+  }
+
+  public static double getDistance(int x1, int y1, int x2, int y2) {
+    int xDiff = x2 - x1;
+    int yDiff = y2 - y1;
+    return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
   }
 
   static float getLuminance(Bitmap bitmap, int x, int y) {

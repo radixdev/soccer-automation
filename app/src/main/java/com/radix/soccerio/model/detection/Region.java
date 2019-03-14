@@ -18,4 +18,24 @@ public class Region {
     mPointSize = 1;
     mRegionBounds = new Rect(x - 1, y - 1, x + 1, y + 1);
   }
+
+  /**
+   * Should this point be consumed by this {@link Region}??!!
+   */
+  public boolean shouldConsumePoint(int x, int y) {
+    if (mRegionBounds.contains(x, y)) {
+      return true;
+    }
+
+    // Treat the region like a circle lol
+    int regionRadius = (mRegionBounds.width() + mRegionBounds.height()) / 2;
+
+    double dist = DetectionUtil.getDistance(mRegionBounds.centerX(), mRegionBounds.centerY(), x, y);
+    return dist < 100;
+  }
+
+  public void consumePoint(int x, int y) {
+    mPointSize++;
+    mRegionBounds.union(x, y);
+  }
 }

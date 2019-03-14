@@ -5,7 +5,9 @@ import android.graphics.Color;
 import android.graphics.Rect;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BallDetector implements IBallDetector {
   private static final String TAG = BallDetector.class.getName();
@@ -22,7 +24,7 @@ public class BallDetector implements IBallDetector {
 
     Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
     List<Integer> borderPoints = getBorderPoints(copyBitmap, sourceWidth, sourceHeight);
-    getContiguousRects(copyBitmap, borderPoints);
+    List<Region> contiguousRegions = getContiguousRegions(copyBitmap, borderPoints);
     return null;
   }
 
@@ -31,17 +33,50 @@ public class BallDetector implements IBallDetector {
    *
    * @param borderPoints
    */
-  private static void getContiguousRects(Bitmap sourceBitmap, List<Integer> borderPoints) {
-    for (int i = 2; i < borderPoints.size(); i+=2) {
-      int x = borderPoints.get(i);
-      int y = borderPoints.get(i + 1);
+  private static List<Region> getContiguousRegions(Bitmap sourceBitmap, List<Integer> borderPoints) {
+    List<Region> generatedRegions = new ArrayList<>();
+    // x indices that currently reside in a Region somewhere
+    Set<Integer> consumedIndices = new HashSet<>();
 
-      // Get the points that came before
+    for (int i = 2; i < borderPoints.size(); i+=2) {
+      int currX = borderPoints.get(i);
+      int currY = borderPoints.get(i + 1);
+
+      // If the current point is close to an existing region, consume it
+      boolean foundRegion = false;
+      for (Region region : generatedRegions) {
+        if (region.shouldConsumePoint(currX, currY)) {
+          // bingo
+          consumedIndices.add(i);
+          region.consumePoint(currX, currY);
+          foundRegion = true;
+          break;
+        }
+      }
+
+      if (foundRegion) {
+        break;
+      }
+
+      // Get the points that came before and try to generate a region
       for (int j = 0; j < i; j+=2) {
         int prevX = borderPoints.get(j);
         int prevY = borderPoints.get(j + 1);
+
+        if (DetectionUtil.getDistance(currX, currY, prevX, prevY) < 200) {
+          Region region = new Region(currX, currY);
+          region.consumePoint(prevX, prevY);
+          // This point is now done
+          consumedIndices.add(j);
+
+          // TODO: juliancontreras 3/14/19 Check this claim!
+          // Since all previous points are now matched to a Region, we can stop traversing them
+          // break;
+        }
       }
     }
+
+    return generatedRegions;
   }
 
   private static List<Integer> getBorderPoints(Bitmap sourceBitmap, int sourceWidth, int sourceHeight) {
