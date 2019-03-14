@@ -49,6 +49,16 @@ public class BallDetectorTest {
     assertRectBoundsMatch(expected, bounds, REGION_RECT_BOUND_THRESHOLD);
   }
 
+  @Test
+  public void testGeneralDetection_Ball4() throws IOException {
+    Bitmap ball = AssetsReader.readBitmapFromAssets("gameshots/ball4.png");
+    BallDetector ballDetector = new BallDetector();
+
+    Rect bounds = ballDetector.getBallBounds(ball);
+    Rect expected = new Rect(510, 2088, 960, 2528);
+    assertRectBoundsMatch(expected, bounds, REGION_RECT_BOUND_THRESHOLD);
+  }
+
   private static void assertRectBoundsMatch(Rect expected, Rect actual, int threshold) {
     assertTrue("Bottom does not match. Expected:  " + expected + " actual: " + actual,
         Math.abs(expected.bottom - actual.bottom) < threshold);

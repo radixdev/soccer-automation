@@ -20,16 +20,15 @@ public class BallDetector implements IBallDetector {
 
   @Override
   public Rect getBallBounds(Bitmap sourceBitmap) {
-
     final int sourceWidth = sourceBitmap.getWidth();
     final int sourceHeight = sourceBitmap.getHeight();
 
-    Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
-    List<Integer> borderPoints = getBorderPoints(copyBitmap, sourceWidth, sourceHeight);
+    // Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
+    List<Integer> borderPoints = getBorderPoints(sourceBitmap, sourceWidth, sourceHeight);
     List<Region> contiguousRegions = getContiguousRegions(borderPoints);
-    for (Region region : contiguousRegions) {
-      drawRegion(copyBitmap, region);
-    }
+    // for (Region region : contiguousRegions) {
+    //   drawRegion(copyBitmap, region);
+    // }
 
     // Find the best region and return it
     Region bestRegion = null;
@@ -155,7 +154,6 @@ public class BallDetector implements IBallDetector {
 
   private static void drawRegion(Bitmap bitmap, Region region) {
     Rect regionBounds = region.getRegionBounds();
-    // drawBigBox(bitmap, regionBounds.centerX(), regionBounds.centerY(), 50, Color);
 
     // Draw left
     drawVerticalLine(bitmap, regionBounds.left, regionBounds.top, regionBounds.bottom);
