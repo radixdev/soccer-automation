@@ -6,8 +6,9 @@ import android.graphics.Rect;
  * A {@link android.graphics.Rect} and the number of points contained within
  */
 public class Region {
-  private Rect mRegionBounds = null;
-  private int mPointSize = 0;
+  public static final int DISTANCE_THRESHOLD = 300;
+  private Rect mRegionBounds;
+  private int mPointSize;
 
   /**
    * Starts the region!
@@ -31,11 +32,19 @@ public class Region {
     int regionRadius = (mRegionBounds.width() + mRegionBounds.height()) / 2;
 
     double dist = DetectionUtil.getDistance(mRegionBounds.centerX(), mRegionBounds.centerY(), x, y);
-    return dist < 100;
+    return dist < DISTANCE_THRESHOLD;
   }
 
   public void consumePoint(int x, int y) {
     mPointSize++;
     mRegionBounds.union(x, y);
+  }
+
+  public Rect getRegionBounds() {
+    return mRegionBounds;
+  }
+
+  public int getContainedPoints() {
+    return mPointSize;
   }
 }
