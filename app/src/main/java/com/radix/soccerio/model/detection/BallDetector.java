@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.os.SystemClock;
 
 import com.radix.soccerio.util.Jog;
 import com.radix.soccerio.util.Stopwatch;
@@ -27,9 +26,8 @@ public class BallDetector implements IBallDetector {
   private static List<Region> mGeneratedRegions = new ArrayList<>();
   private static Set<Integer> mConsumedIndices = new HashSet<>();
 
-  private long mLastDetectTime = 1;
-  private Region mLastRegion = null;
   private Context mAppContext;
+  private static final boolean DRAW_DEBUG = true;
 
   public BallDetector(Context applicationContext) {
     mAppContext = applicationContext;
@@ -41,19 +39,25 @@ public class BallDetector implements IBallDetector {
     final int sourceWidth = sourceBitmap.getWidth();
     final int sourceHeight = sourceBitmap.getHeight();
 
+    // Make a copy
+    if (DRAW_DEBUG) {
+      sourceBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
+    }
+
     List<Integer> borderPoints = getBorderPoints(sourceBitmap, sourceWidth, sourceHeight);
     List<Region> contiguousRegions = getContiguousRegions(borderPoints);
 
-    // Bitmap copyBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
-    // for (Region contiguousRegion : contiguousRegions) {
-    //   drawRegion(copyBitmap, contiguousRegion);
-    // }
+    if (DRAW_DEBUG) {
+      for (Region contiguousRegion : contiguousRegions) {
+        drawRegion(sourceBitmap, contiguousRegion);
+      }
+    }
 
     // Find the best region and return it
     Region bestRegion = null;
     int bestPointCount = -1;
     for (Region region : contiguousRegions) {
-      Rect bounds = region.getRegionBounds();
+      // Rect bounds = region.getRegionBounds();
       final int containedPoints = region.getContainedPoints();
       if (bestPointCount < containedPoints && containedPoints > 10) {
         bestPointCount = containedPoints;
@@ -74,32 +78,10 @@ public class BallDetector implements IBallDetector {
         BitmapCache.saveBitmap(mAppContext, sourceBitmap);
       }
 
-      double xVel = 0;
-      double yVel = 0;
-      if (mLastRegion != null) {
-        long delta = SystemClock.uptimeMillis() - mLastDetectTime;
-        printLastRegionStats(bestRegion, delta);
-        xVel = ((double) bestRegion.getRegionBounds().centerX() - (double) mLastRegion.getRegionBounds().centerX()) / delta;
-        yVel = ((double) bestRegion.getRegionBounds().centerY() - (double) mLastRegion.getRegionBounds().centerY()) / delta;
-      }
-
-      mLastRegion = bestRegion;
-      mLastDetectTime = SystemClock.uptimeMillis();
-
-      // Shift by the delta
-      Rect regionBounds = bestRegion.getRegionBounds();
-      float scalar = 2;
-      // regionBounds.offset((int) (xVel * scalar), (int) (yVel * scalar));
-
-      return regionBounds;
+      return bestRegion.getRegionBounds();
     } else {
       return null;
     }
-  }
-
-  private void printLastRegionStats(Region newRegion, float delta) {
-    double yVel = (newRegion.getRegionBounds().centerY() - mLastRegion.getRegionBounds().centerY()) / delta;
-    Jog.d(TAG, "yvel: " + yVel);
   }
 
   /**
@@ -166,6 +148,10 @@ public class BallDetector implements IBallDetector {
         if (xMagnitude > MAGNITUDE_THRESHOLD) {
           mBorderPoints.add(x);
           mBorderPoints.add(y);
+
+          if (DRAW_DEBUG) {
+            drawBigBox(sourceBitmap, x, y, 25, Color.MAGENTA);
+          }
         }
       }
     }
