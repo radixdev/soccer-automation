@@ -25,7 +25,7 @@ public class BallDetectorTest {
 
   @Before
   public void setUp() throws Exception {
-    mBallDetector = new BallDetector(InstrumentationRegistry.getContext());
+    mBallDetector = new BallDetector(InstrumentationRegistry.getTargetContext());
   }
 
   @Test

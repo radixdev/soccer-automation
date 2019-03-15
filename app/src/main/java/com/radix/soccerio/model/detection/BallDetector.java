@@ -7,8 +7,10 @@ import android.graphics.Rect;
 
 import com.radix.soccerio.util.Jog;
 import com.radix.soccerio.util.Stopwatch;
-import com.radix.soccerio.util.save.BitmapCache;
+import com.radix.soccerio.util.bitmap.AssetsReader;
+import com.radix.soccerio.util.bitmap.BitmapCache;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,15 +24,21 @@ public class BallDetector implements IBallDetector {
   private static final int Y_STRIDE = 25;
   private static final int MIN_STRIDE = 20;
   private static final float MAGNITUDE_THRESHOLD = 0.101f;
+  private static final boolean DRAW_DEBUG = true;
   private static List<Integer> mBorderPoints = new ArrayList<>();
   private static List<Region> mGeneratedRegions = new ArrayList<>();
   private static Set<Integer> mConsumedIndices = new HashSet<>();
 
   private Context mAppContext;
-  private static final boolean DRAW_DEBUG = true;
+  private final Bitmap mBallAnchor;
 
   public BallDetector(Context applicationContext) {
     mAppContext = applicationContext;
+    try {
+      mBallAnchor = AssetsReader.readBitmapFromAssets(mAppContext, "ball_color.png");
+    } catch (IOException e) {
+      throw new RuntimeException("Couldn't read anchor bitmap", e);
+    }
   }
 
   @Override

@@ -1,4 +1,4 @@
-package com.radix.soccerio.util.save;
+package com.radix.soccerio.util.bitmap;
 
 import android.content.Context;
 import android.graphics.Bitmap;
