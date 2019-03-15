@@ -8,7 +8,6 @@ import android.graphics.Rect;
 import com.radix.soccerio.util.Jog;
 import com.radix.soccerio.util.Stopwatch;
 import com.radix.soccerio.util.bitmap.AssetsReader;
-import com.radix.soccerio.util.bitmap.BitmapCache;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,22 +20,24 @@ import androidx.annotation.ColorInt;
 
 public class BallDetector implements IBallDetector {
   private static final String TAG = BallDetector.class.getName();
-  private static final int MAX_STRIDE = 50;
-  private static final int Y_STRIDE = 25;
+  private static final int MAX_STRIDE = 30;
+  private static final int Y_STRIDE = 20;
   private static final int MIN_STRIDE = 20;
-  private static final float MAGNITUDE_THRESHOLD = 0.101f;
+  private static final float MAGNITUDE_THRESHOLD = 0.801f;
   private static final boolean DRAW_DEBUG = true;
   private static List<Integer> mBorderPoints = new ArrayList<>();
   private static List<Region> mGeneratedRegions = new ArrayList<>();
   private static Set<Integer> mConsumedIndices = new HashSet<>();
 
   private Context mAppContext;
-  private final Bitmap mBallAnchor;
+  private final List<Integer> mAnchorColors;
 
   public BallDetector(Context applicationContext) {
     mAppContext = applicationContext;
     try {
-      mBallAnchor = AssetsReader.readBitmapFromAssets(mAppContext, "ball_color.png");
+      Bitmap anchor = AssetsReader.readBitmapFromAssets(mAppContext, "ball_color.png");
+      mAnchorColors = getAnchorColors(anchor);
+      anchor.recycle();
     } catch (IOException e) {
       throw new RuntimeException("Couldn't read anchor bitmap", e);
     }
@@ -49,16 +50,17 @@ public class BallDetector implements IBallDetector {
     final int sourceHeight = sourceBitmap.getHeight();
 
     // Make a copy
+    Bitmap copy;
     if (DRAW_DEBUG) {
-      sourceBitmap = sourceBitmap.copy(sourceBitmap.getConfig(), true);
+      copy = sourceBitmap.copy(sourceBitmap.getConfig(), true);
     }
 
-    List<Integer> borderPoints = getBorderPoints(sourceBitmap, sourceWidth, sourceHeight);
+    List<Integer> borderPoints = getBorderPoints(copy, sourceBitmap, sourceWidth, sourceHeight);
     List<Region> contiguousRegions = mergeRegions(mergeRegions(getContiguousRegions(borderPoints)));
 
     if (DRAW_DEBUG) {
       for (Region contiguousRegion : contiguousRegions) {
-        drawRegion(sourceBitmap, contiguousRegion);
+        drawRegion(copy, contiguousRegion);
       }
     }
 
@@ -66,7 +68,6 @@ public class BallDetector implements IBallDetector {
     Region bestRegion = null;
     int bestPointCount = -1;
     for (Region region : contiguousRegions) {
-      // Rect bounds = region.getRegionBounds();
       final int containedPoints = region.getContainedPoints();
       if (bestPointCount < containedPoints && containedPoints > 10) {
         bestPointCount = containedPoints;
@@ -82,15 +83,54 @@ public class BallDetector implements IBallDetector {
           + bestRegion.getRegionBounds() + " with dims: " + bestRegion.getRegionBounds().width()
           + " " + bestRegion.getRegionBounds().height());
 
-      if (contiguousRegions.size() >= 5) {
-        Jog.d(TAG, "Wrote bitmap");
-        BitmapCache.saveBitmap(mAppContext, sourceBitmap);
-      }
+      // if (contiguousRegions.size() >= 5) {
+      //   Jog.d(TAG, "Wrote bitmap");
+      //   BitmapCache.saveBitmap(mAppContext, sourceBitmap);
+      // }
 
       return bestRegion.getRegionBounds();
     } else {
       return null;
     }
+  }
+
+  private List<Integer> getBorderPoints(Bitmap copyBitmap, Bitmap sourceBitmap, int sourceWidth, int sourceHeight) {
+    mBorderPoints.clear();
+
+    for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
+      for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += MAX_STRIDE) {
+        final int bitmapPixel = sourceBitmap.getPixel(x, y);
+        if (Color.luminance(bitmapPixel) > 0.8f || Color.alpha(bitmapPixel) < 0.1f) {
+          continue;
+        }
+
+        float xMagnitude = DetectionUtil.getLuminance(sourceBitmap, x + MIN_STRIDE, y) - DetectionUtil.getLuminance(sourceBitmap, x - MIN_STRIDE, y);
+        float yMagnitude = DetectionUtil.getLuminance(sourceBitmap, x, y + MIN_STRIDE) - DetectionUtil.getLuminance(sourceBitmap, x, y - MIN_STRIDE);
+        double normalMagnitude = Math.sqrt(xMagnitude * xMagnitude + yMagnitude * yMagnitude);
+
+        if (normalMagnitude > MAGNITUDE_THRESHOLD) {
+          int closeColorsFound = 0;
+          for (int anchorColor : mAnchorColors) {
+            if (getColorDistance(bitmapPixel, anchorColor) < 50) {
+              closeColorsFound++;
+            }
+          }
+
+          if (closeColorsFound < 3) {
+            continue;
+          }
+
+          mBorderPoints.add(x);
+          mBorderPoints.add(y);
+
+          if (DRAW_DEBUG) {
+            drawBigBox(copyBitmap, x, y, 25, Color.MAGENTA);
+          }
+        }
+      }
+    }
+
+    return mBorderPoints;
   }
 
   private static List<Region> mergeRegions(List<Region> regions) {
@@ -172,24 +212,26 @@ public class BallDetector implements IBallDetector {
     return mGeneratedRegions;
   }
 
-  private static List<Integer> getBorderPoints(Bitmap sourceBitmap, int sourceWidth, int sourceHeight) {
-    mBorderPoints.clear();
+  private static List<Integer> getAnchorColors(Bitmap bitmap) {
+    List<Integer> colors = new ArrayList<>();
+    final int sourceWidth = bitmap.getWidth();
+    final int sourceHeight = bitmap.getHeight();
 
-    for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
-      for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += MAX_STRIDE) {
-        float xMagnitude = DetectionUtil.getLuminance(sourceBitmap, x + MIN_STRIDE, y) - DetectionUtil.getLuminance(sourceBitmap, x - MIN_STRIDE, y);
-        if (xMagnitude > MAGNITUDE_THRESHOLD) {
-          mBorderPoints.add(x);
-          mBorderPoints.add(y);
-
-          if (DRAW_DEBUG) {
-            drawBigBox(sourceBitmap, x, y, 25, Color.MAGENTA);
-          }
-        }
+    final int stride = (int) (Math.sqrt(sourceHeight * sourceWidth / 32f));
+    for (int x = 0; x < sourceWidth; x += stride) {
+      for (int y = 0; y < sourceHeight; y += stride) {
+        colors.add(bitmap.getPixel(x, y));
       }
     }
 
-    return mBorderPoints;
+    return colors;
+  }
+
+  private static double getColorDistance(int c1, int c2) {
+    int r = Color.red(c1) - Color.red(c2);
+    int g = Color.green(c1) - Color.green(c2);
+    int b = Color.blue(c1) - Color.blue(c2);
+    return Math.sqrt(r * r + g * g + b * b);
   }
 
   private static void drawBigBox(Bitmap bitmap, int startX, int startY, int radius, @ColorInt int color) {
@@ -201,7 +243,7 @@ public class BallDetector implements IBallDetector {
   }
 
   private static void drawVerticalLine(Bitmap bitmap, int startX, int startY, int endY) {
-    int color = Color.blue(255);
+    int color = Color.BLUE;
     int thickness = 10;
 
     int lowerY = Math.min(startY, endY);
@@ -212,7 +254,7 @@ public class BallDetector implements IBallDetector {
   }
 
   private static void drawHorizontalLine(Bitmap bitmap, int startY, int startX, int endX) {
-    int color = Color.blue(255);
+    int color = Color.BLUE;
     int thickness = 10;
 
     int lowerX = Math.min(startX, endX);

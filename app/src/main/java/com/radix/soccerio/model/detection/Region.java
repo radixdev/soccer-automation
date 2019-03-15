@@ -6,7 +6,7 @@ import android.graphics.Rect;
  * A {@link android.graphics.Rect} and the number of points contained within
  */
 public class Region {
-  static final float DISTANCE_THRESHOLD = 250;
+  static final float DISTANCE_THRESHOLD = 150;
   private Rect mRegionBounds;
   private int mPointSize;
 
