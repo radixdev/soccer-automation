@@ -13,6 +13,7 @@ import com.radix.soccerio.util.bitmap.BitmapCache;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -53,7 +54,7 @@ public class BallDetector implements IBallDetector {
     }
 
     List<Integer> borderPoints = getBorderPoints(sourceBitmap, sourceWidth, sourceHeight);
-    List<Region> contiguousRegions = getContiguousRegions(borderPoints);
+    List<Region> contiguousRegions = mergeRegions(mergeRegions(getContiguousRegions(borderPoints)));
 
     if (DRAW_DEBUG) {
       for (Region contiguousRegion : contiguousRegions) {
@@ -90,6 +91,30 @@ public class BallDetector implements IBallDetector {
     } else {
       return null;
     }
+  }
+
+  private static List<Region> mergeRegions(List<Region> regions) {
+    for (Region next : regions) {
+      if (next.isConsumed()) {
+        continue;
+      }
+
+      for (Region region : regions) {
+        if (next.shouldConsumeRegion(region) && region != next && !region.isConsumed()) {
+          next.consumeRegion(region);
+          region.setConsumed(true);
+        }
+      }
+    }
+
+    for (Iterator<Region> iterator = regions.iterator(); iterator.hasNext(); ) {
+      Region next = iterator.next();
+      if (next.isConsumed()) {
+        iterator.remove();
+      }
+    }
+
+    return regions;
   }
 
   /**
