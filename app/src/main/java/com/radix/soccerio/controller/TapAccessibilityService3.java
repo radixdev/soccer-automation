@@ -21,7 +21,7 @@ public class TapAccessibilityService3 extends AccessibilityService {
   private static boolean sIsRunning = false;
   private static TapAccessibilityService3 sInstance = null;
 
-  private IBallDetector mBallDetector = new BallDetector();
+  private IBallDetector mBallDetector;
 
   @Override
   public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -48,6 +48,7 @@ public class TapAccessibilityService3 extends AccessibilityService {
     super.onServiceConnected();
     sInstance = this;
     sIsRunning = true;
+    mBallDetector = new BallDetector(this.getApplicationContext());
     Jog.i(TAG, "Accessibility service connected");
   }
 

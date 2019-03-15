@@ -1,32 +1,39 @@
 package com.radix.soccerio.model.detection;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.SystemClock;
 
-import androidx.annotation.ColorInt;
-
 import com.radix.soccerio.util.Jog;
 import com.radix.soccerio.util.Stopwatch;
+import com.radix.soccerio.util.save.BitmapCache;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import androidx.annotation.ColorInt;
+
 public class BallDetector implements IBallDetector {
   private static final String TAG = BallDetector.class.getName();
   private static final int MAX_STRIDE = 50;
   private static final int Y_STRIDE = 25;
   private static final int MIN_STRIDE = 20;
-  private static final float MAGNITUDE_THRESHOLD = 0.401f;
+  private static final float MAGNITUDE_THRESHOLD = 0.101f;
   private static List<Integer> mBorderPoints = new ArrayList<>();
   private static List<Region> mGeneratedRegions = new ArrayList<>();
   private static Set<Integer> mConsumedIndices = new HashSet<>();
 
   private long mLastDetectTime = 1;
   private Region mLastRegion = null;
+  private Context mAppContext;
+
+  public BallDetector(Context applicationContext) {
+    mAppContext = applicationContext;
+  }
 
   @Override
   public Rect getBallBounds(Bitmap sourceBitmap) {
@@ -47,16 +54,25 @@ public class BallDetector implements IBallDetector {
     int bestPointCount = -1;
     for (Region region : contiguousRegions) {
       Rect bounds = region.getRegionBounds();
-      if (bestPointCount < region.getContainedPoints()) {
-        bestPointCount = region.getContainedPoints();
+      final int containedPoints = region.getContainedPoints();
+      if (bestPointCount < containedPoints && containedPoints > 10) {
+        bestPointCount = containedPoints;
         bestRegion = region;
       }
     }
 
     if (bestRegion != null) {
       ticket.report();
-      Jog.v(TAG, "Found best region with num points: " + bestPointCount + " and region: "
-          + bestRegion.getRegionBounds() + " with dims: " + bestRegion.getRegionBounds().width() + " " + bestRegion.getRegionBounds().height());
+      Jog.v(TAG, "Found best region with num points: " + bestPointCount
+          + " num regions total " + contiguousRegions.size()
+          + " and region: "
+          + bestRegion.getRegionBounds() + " with dims: " + bestRegion.getRegionBounds().width()
+          + " " + bestRegion.getRegionBounds().height());
+
+      if (contiguousRegions.size() >= 5) {
+        Jog.d(TAG, "Wrote bitmap");
+        BitmapCache.saveBitmap(mAppContext, sourceBitmap);
+      }
 
       double xVel = 0;
       double yVel = 0;
@@ -73,7 +89,7 @@ public class BallDetector implements IBallDetector {
       // Shift by the delta
       Rect regionBounds = bestRegion.getRegionBounds();
       float scalar = 2;
-      regionBounds.offset((int) (xVel * scalar), (int) (yVel * scalar));
+      // regionBounds.offset((int) (xVel * scalar), (int) (yVel * scalar));
 
       return regionBounds;
     } else {
@@ -144,8 +160,8 @@ public class BallDetector implements IBallDetector {
   private static List<Integer> getBorderPoints(Bitmap sourceBitmap, int sourceWidth, int sourceHeight) {
     mBorderPoints.clear();
 
-    for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += MAX_STRIDE) {
-      for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
+    for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
+      for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += MAX_STRIDE) {
         float xMagnitude = DetectionUtil.getLuminance(sourceBitmap, x + MIN_STRIDE, y) - DetectionUtil.getLuminance(sourceBitmap, x - MIN_STRIDE, y);
         if (xMagnitude > MAGNITUDE_THRESHOLD) {
           mBorderPoints.add(x);

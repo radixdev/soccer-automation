@@ -29,8 +29,6 @@ public class Region {
     }
 
     // Treat the region like a circle lol
-    int regionRadius = (mRegionBounds.width() + mRegionBounds.height()) / 2;
-
     double dist = DetectionUtil.getDistance(mRegionBounds.centerX(), mRegionBounds.centerY(), x, y);
     return dist < DISTANCE_THRESHOLD;
   }

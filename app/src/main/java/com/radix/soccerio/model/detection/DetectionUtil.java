@@ -27,6 +27,9 @@ public class DetectionUtil {
   }
 
   static float getLuminance(Bitmap bitmap, int x, int y) {
+    if (x < 0 || y < 0 || x > bitmap.getWidth() || y > bitmap.getHeight()) {
+      return 0;
+    }
     int pixelColor = bitmap.getPixel(x, y);
     return Color.luminance(pixelColor);
   }
