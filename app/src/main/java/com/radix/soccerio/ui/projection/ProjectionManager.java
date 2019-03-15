@@ -19,7 +19,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.OrientationEventListener;
 
-import com.radix.soccerio.controller.TapAccessibilityService4;
+import com.radix.soccerio.controller.TapAccessibilityService5;
 import com.radix.soccerio.util.Constants;
 import com.radix.soccerio.util.Jog;
 
@@ -146,7 +146,7 @@ public class ProjectionManager {
             image.close();
 
             mLastScreenshotTimeMillis = SystemClock.uptimeMillis();
-            TapAccessibilityService4.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
+            TapAccessibilityService5.getInstance().onScreenBitmapAvailable(mLastCapturedBitmap);
           }
         }
       } catch (Exception e) {

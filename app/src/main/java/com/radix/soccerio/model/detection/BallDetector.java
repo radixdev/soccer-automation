@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
 
+import androidx.annotation.ColorInt;
+
 import com.radix.soccerio.util.Jog;
 import com.radix.soccerio.util.Stopwatch;
 import com.radix.soccerio.util.bitmap.AssetsReader;
@@ -15,8 +17,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import androidx.annotation.ColorInt;
 
 public class BallDetector implements IBallDetector {
   private static final String TAG = BallDetector.class.getName();
@@ -69,7 +69,7 @@ public class BallDetector implements IBallDetector {
     int bestPointCount = -1;
     for (Region region : contiguousRegions) {
       final int containedPoints = region.getContainedPoints();
-      if (bestPointCount < containedPoints && containedPoints > 10) {
+      if (bestPointCount < containedPoints && containedPoints > 15) {
         bestPointCount = containedPoints;
         bestRegion = region;
       }
@@ -99,6 +99,9 @@ public class BallDetector implements IBallDetector {
 
     for (int y = MIN_STRIDE; y < sourceHeight - MIN_STRIDE; y += Y_STRIDE) {
       for (int x = MIN_STRIDE; x < sourceWidth - MIN_STRIDE; x += MAX_STRIDE) {
+        if (y < 200 && x > sourceWidth * 0.8) {
+          continue;
+        }
         final int bitmapPixel = sourceBitmap.getPixel(x, y);
         if (Color.luminance(bitmapPixel) > 0.8f || Color.alpha(bitmapPixel) < 0.1f) {
           continue;
@@ -117,7 +120,7 @@ public class BallDetector implements IBallDetector {
           }
 
           if (closeColorsFound < 3) {
-            // continue;
+            continue;
           }
 
           mBorderPoints.add(x);
