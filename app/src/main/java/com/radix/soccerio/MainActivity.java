@@ -8,13 +8,13 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.radix.soccerio.controller.TapAccessibilityService3;
+import com.radix.soccerio.controller.TapAccessibilityService4;
 import com.radix.soccerio.ui.projection.ProjectionManager;
 import com.radix.soccerio.util.Jog;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
   private static final String TAG = MainActivity.class.getName();
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     mProjectionManager = new ProjectionManager(activity);
 
     findViewById(R.id.bEnable).setOnClickListener(v -> {
-      if (!TapAccessibilityService3.isRunning()) {
+      if (!TapAccessibilityService4.isRunning()) {
         Toast.makeText(getApplicationContext(), R.string.service_is_not_running_foh, Toast.LENGTH_LONG).show();
       } else {
         mProjectionManager.startProjection(activity);
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    if (!TapAccessibilityService3.isRunning()) {
+    if (!TapAccessibilityService4.isRunning()) {
       Jog.d(TAG, "Service is not running!");
       gotoAccessibilitySettings();
     } else {
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
       // Runnable tapLoopRunnable = () -> {
       //   // Bitmap lastCapturedBitmap = ProjectionManager.getLastCapturedBitmap();
       //   // Jog.d(TAG, "Got bitmap");
-      //   // TapAccessibilityService3.getInstance().sendTap(689, 2833);
+      //   // TapAccessibilityService4.getInstance().sendTap(689, 2833);
       // };
       // handler.postDelayed(tapLoopRunnable, 10000L);
     }

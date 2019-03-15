@@ -24,7 +24,7 @@ public class BallDetector implements IBallDetector {
   private static final int Y_STRIDE = 20;
   private static final int MIN_STRIDE = 20;
   private static final float MAGNITUDE_THRESHOLD = 0.801f;
-  private static final boolean DRAW_DEBUG = true;
+  private static final boolean DRAW_DEBUG = false;
   private static List<Integer> mBorderPoints = new ArrayList<>();
   private static List<Region> mGeneratedRegions = new ArrayList<>();
   private static Set<Integer> mConsumedIndices = new HashSet<>();
@@ -50,7 +50,7 @@ public class BallDetector implements IBallDetector {
     final int sourceHeight = sourceBitmap.getHeight();
 
     // Make a copy
-    Bitmap copy;
+    Bitmap copy = null;
     if (DRAW_DEBUG) {
       copy = sourceBitmap.copy(sourceBitmap.getConfig(), true);
     }
@@ -117,7 +117,7 @@ public class BallDetector implements IBallDetector {
           }
 
           if (closeColorsFound < 3) {
-            continue;
+            // continue;
           }
 
           mBorderPoints.add(x);

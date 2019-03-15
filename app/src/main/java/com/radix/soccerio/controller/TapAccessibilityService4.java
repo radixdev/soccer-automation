@@ -16,10 +16,10 @@ import com.radix.soccerio.model.detection.IBallDetector;
 import com.radix.soccerio.util.Constants;
 import com.radix.soccerio.util.Jog;
 
-public class TapAccessibilityService3 extends AccessibilityService {
-  private static final String TAG = TapAccessibilityService3.class.getName();
+public class TapAccessibilityService4 extends AccessibilityService {
+  private static final String TAG = TapAccessibilityService4.class.getName();
   private static boolean sIsRunning = false;
-  private static TapAccessibilityService3 sInstance = null;
+  private static TapAccessibilityService4 sInstance = null;
 
   private IBallDetector mBallDetector;
 
@@ -69,7 +69,7 @@ public class TapAccessibilityService3 extends AccessibilityService {
     return sIsRunning;
   }
 
-  public static TapAccessibilityService3 getInstance() {
+  public static TapAccessibilityService4 getInstance() {
     if (sInstance == null) {
       Jog.w(TAG, "AccessibilityService is not connected yet.");
       throw new RuntimeException("AccessibilityService is not connected yet.");
@@ -80,12 +80,16 @@ public class TapAccessibilityService3 extends AccessibilityService {
   public void onScreenBitmapAvailable(Bitmap bitmap) {
     Rect ballBounds = mBallDetector.getBallBounds(bitmap);
 
-    if (ballBounds == null || ballBounds.centerY() < 1200) {
+    if (ballBounds == null) {
+      return;
+    }
+
+    if (ballBounds.bottom < 300) {
       return;
     }
     // Choose a point in the middle, near the bottom
     float tapX = ballBounds.exactCenterX();
-    float tapY = ballBounds.top + (ballBounds.height()) * 0.95f;
+    float tapY = ballBounds.top + (ballBounds.height()) * Constants.REGION_TAP_SCALAR;
     sendTap(tapX, tapY);
   }
 
