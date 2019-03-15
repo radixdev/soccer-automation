@@ -62,7 +62,7 @@ public class TapAccessibilityService5 extends AccessibilityService {
 
   public void sendTap(float x, float y) {
     boolean result = dispatchGesture(createClick(x, y), null, null);
-    Jog.d(TAG, "Tap gesture to " + x + " " + y + " dispatched? " + result);
+    // Jog.d(TAG, "Tap gesture to " + x + " " + y + " dispatched? " + result);
   }
 
   public static boolean isRunning() {
@@ -91,6 +91,9 @@ public class TapAccessibilityService5 extends AccessibilityService {
     float tapX = ballBounds.exactCenterX();
     float tapY = ballBounds.top + (ballBounds.height()) * Constants.REGION_TAP_SCALAR;
     sendTap(tapX, tapY);
+
+    // Try to click below the ball for safety on drops
+    sendTap(tapX, tapY + 20);
   }
 
   private ActivityInfo tryGetActivity(ComponentName componentName) {

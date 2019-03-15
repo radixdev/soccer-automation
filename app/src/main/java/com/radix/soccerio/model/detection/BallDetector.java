@@ -7,7 +7,6 @@ import android.graphics.Rect;
 
 import androidx.annotation.ColorInt;
 
-import com.radix.soccerio.util.Jog;
 import com.radix.soccerio.util.Stopwatch;
 import com.radix.soccerio.util.bitmap.AssetsReader;
 
@@ -76,12 +75,12 @@ public class BallDetector implements IBallDetector {
     }
 
     if (bestRegion != null) {
-      ticket.report();
-      Jog.v(TAG, "Found best region with num points: " + bestPointCount
-          + " num regions total " + contiguousRegions.size()
-          + " and region: "
-          + bestRegion.getRegionBounds() + " with dims: " + bestRegion.getRegionBounds().width()
-          + " " + bestRegion.getRegionBounds().height());
+      // ticket.report();
+      // Jog.v(TAG, "Found best region with num points: " + bestPointCount
+      //     + " num regions total " + contiguousRegions.size()
+      //     + " and region: "
+      //     + bestRegion.getRegionBounds() + " with dims: " + bestRegion.getRegionBounds().width()
+      //     + " " + bestRegion.getRegionBounds().height());
 
       // if (contiguousRegions.size() >= 5) {
       //   Jog.d(TAG, "Wrote bitmap");
