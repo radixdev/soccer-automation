@@ -89,6 +89,10 @@ public class TapAccessibilityService5 extends AccessibilityService {
     // }
     // Choose a point in the middle, near the bottom
     float tapX = ballBounds.exactCenterX();
+
+    int halfWidth = bitmap.getWidth() / 2;
+    int overageX = (int) (tapX - halfWidth) / 7;
+    tapX += overageX;
     float tapY = ballBounds.top + (ballBounds.height()) * Constants.REGION_TAP_SCALAR;
     sendTap(tapX, tapY);
 
